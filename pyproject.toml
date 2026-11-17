@@ -137,3 +137,7 @@ commands = [
     [ "mypy", { replace = "posargs", default = [ "tap_engagently", "tests" ], extend = true } ],
     [ "ty", "check", { replace = "posargs", default = [ "tap_engagently", "tests" ], extend = true } ],
 ]
+
+[tool.uv]
+# same cooldown locally and in CI, otherwise `uv sync --locked` sees a different resolver setting
+exclude-newer = "7 days"
