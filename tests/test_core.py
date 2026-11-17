@@ -109,6 +109,14 @@ def test_post_process_drops_rows_without_id() -> None:
     assert _streams()["discussions"].post_process({"created_at": "2025-01-01T00:00:00Z"}) is None
 
 
+def test_full_walk_starts_at_zero_cursor() -> None:
+    stream = _streams()["discussions"]
+    stream._changed_since = None
+
+    assert CursorPaginator().current_value == "0" * 24
+    assert stream.get_url_params(None, None)["after"] == "0" * 24
+
+
 def test_cursor_paginator_stops_on_empty_page() -> None:
     paginator = CursorPaginator()
     page = _response({"paging": {"after": "abc"}, "objects": [{"id": "1"}]})
