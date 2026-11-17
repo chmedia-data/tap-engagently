@@ -20,7 +20,7 @@ Both streams bookmark `changed_at`, which the tap sets to the latest change time
 - `commentaries`: `created_at`, `updated_at`, `moderation.status_at`, `visibility.status_at`, `deleted_at`, `featured_at`, `reported_at`. `updated_at` only moves on edits, so the other changes count separately.
 - `discussions`: `created_at`, `updated_at`.
 
-Without a bookmark the tap walks the whole entity with the cursor endpoint (`GET /1.0/<entity>?after=<id>`). With a bookmark it calls `POST /1.0/<entity>/search` with a filter like `created_at gt '<since>' or updated_at gt '<since>' or ...`, where `since` is the bookmark minus `lookback_days`. Reaction counts have no timestamp. The lookback window refreshes them for comments with a tracked change in that window; a new reaction on an older comment stays stale until the next full run without state.
+Without a bookmark the tap walks the whole entity with the cursor endpoint (`GET /1.0/<entity>?after=<id>`), starting at `after=000000000000000000000000`. Without that cursor the API starts at a community-specific default and skips objects with older ids, for example ones imported from an earlier platform. With a bookmark it calls `POST /1.0/<entity>/search` with a filter like `created_at gt '<since>' or updated_at gt '<since>' or ...`, where `since` is the bookmark minus `lookback_days`. Reaction counts have no timestamp. The lookback window refreshes them for comments with a tracked change in that window; a new reaction on an older comment stays stale until the next full run without state.
 
 Search results come sorted by `created_at` and `id` (so ties cannot shift across a page boundary), not by `changed_at`, so the streams are unsorted and state is only final at the end of a run.
 

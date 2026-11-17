@@ -24,17 +24,22 @@ if TYPE_CHECKING:
     from singer_sdk.helpers.types import Context
 
 PAGE_SIZE = 100
+# Without a cursor the iterate endpoints start at a community-specific default, not at the
+# oldest object, so records with older ids (e.g. imported from an earlier platform) are skipped.
+# The smallest ObjectId makes the walk start at the very beginning.
+ZERO_CURSOR = "0" * 24
 
 
 class CursorPaginator(BaseAPIPaginator[str | None]):
     """Cursor pagination of the iterate endpoints (`GET /1.0/<entity>?after=<id>`).
 
     The API returns `paging.after` with the id of the last object on the page and
-    `after: null` with an empty page once the end is reached.
+    `after: null` with an empty page once the end is reached. The walk starts at
+    `ZERO_CURSOR`, see there.
     """
 
     def __init__(self) -> None:
-        super().__init__(start_value=None)
+        super().__init__(start_value=ZERO_CURSOR)
 
     @override
     def get_next(self, response: requests.Response) -> str | None:
@@ -213,8 +218,8 @@ class EngagentlyStream(RESTStream):
             params["page"] = next_page_token or 1
             # id breaks ties on created_at, so a page boundary cannot skip or repeat a record
             params["sort"] = "created_at:asc,id:asc"
-        elif next_page_token:
-            params["after"] = next_page_token
+        else:
+            params["after"] = next_page_token or ZERO_CURSOR
         return params
 
     @override
